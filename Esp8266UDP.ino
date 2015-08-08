@@ -7,6 +7,7 @@ unsigned int localPort = 5000;
 int status = WL_IDLE_STATUS;
 char packetBuffer[255]; 
 char ReplyBuffer[] = "OK\n";
+int pwm = 0;
 
 WiFiUDP Udp;
 
@@ -36,12 +37,22 @@ void loop() {
     if (len > 0) {
       packetBuffer[len] = 0;
     }
-    
-    int pwm = atoi(packetBuffer);
-    analogWrite(2, pwm);
 
-    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-    Udp.write(ReplyBuffer);
-    Udp.endPacket();
+    if (strcmp(packetBuffer, "pwm\n") == 0) {
+      char p[5];
+      String str = String(pwm);
+      str.toCharArray(p,5);
+      Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+      Udp.write(p);
+      Udp.endPacket();
+    } else {
+      pwm = atoi(packetBuffer);
+      analogWrite(2, pwm);
+
+      Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+      Udp.write(ReplyBuffer);
+      Udp.endPacket();
+    }
   }
+  delay(10);
 }
